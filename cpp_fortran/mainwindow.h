@@ -15,7 +15,8 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    void paintEvent(QPaintEvent *);
+private slots:
+    void on_actionRun_triggered();
 
 private:
     Ui::MainWindow *ui;

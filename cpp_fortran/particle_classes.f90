@@ -31,6 +31,10 @@ contains
     procedure :: positions       => particle_system_positions
     procedure :: velocities      => particle_system_velocities
     procedure :: radius          => particle_system_radius
+
+    procedure :: particle        => particle_system_particle
+    procedure :: particle_count  => particle_system_particle_count
+
 end type
 
 type ParticleSimulation
@@ -42,6 +46,7 @@ contains
     procedure :: check_boundaries  => particle_simulator_check_boundaries
     procedure :: check_collisions  => particle_simulator_check_collisions
     procedure :: run               => particle_simulator_run
+    procedure :: run_iteration     => particle_simulator_run_iteration
 end type
 
 contains
@@ -195,6 +200,27 @@ function particle_system_count(this) result(count)
 
 end function
 
+subroutine particle_system_particle(this, idx, x, y, r)
+
+    class(ParticleSystem) :: this
+    integer, intent(in) :: idx
+    real(dp), intent(out) :: x, y, r
+
+    x = this % m_pos(idx, 1)
+    y = this % m_pos(idx, 2)
+    r = this % m_r(idx)
+
+end subroutine
+
+function particle_system_particle_count(this) result(count)
+
+    class(ParticleSystem) :: this
+    integer :: count
+
+    count = size(this % m_pos, 1)
+
+end function
+
 ! ---------------------------------------------------------------
 
 subroutine particle_simulator_init(this, psys)
@@ -227,7 +253,8 @@ subroutine particle_simulator_update(this, dtin)
             dt = this % m_psys % rmin()/(3.0_dp*this % m_psys % v0())
     end if
 
-    pos = pos + vel * this % m_psys % dt()
+    pos = pos + vel * dt
+    print*, dt
 
 end subroutine particle_simulator_update
 
@@ -309,5 +336,14 @@ subroutine particle_simulator_run(this, n_iterations)
 
 end subroutine
 
+subroutine particle_simulator_run_iteration(this)
+
+    class(ParticleSimulation) :: this
+
+    call this % check_collisions()
+    call this % check_boundaries()
+    call this % update()
+
+end subroutine
 
 end module particle_classes

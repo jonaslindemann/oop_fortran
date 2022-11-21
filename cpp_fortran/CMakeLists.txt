@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(cpp_fortran VERSION 0.1 LANGUAGES CXX)
+project(cpp_fortran VERSION 0.1 LANGUAGES CXX C Fortran)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -19,6 +19,14 @@ set(PROJECT_SOURCES
         mainwindow.cpp
         mainwindow.h
         mainwindow.ui
+        particle_canvas.cpp
+        particle_canvas.h
+        particle_interface.h
+        mf_datatypes.f90
+        mf_utils.f90
+        particle_classes.f90
+        particle_utils.f90
+        particle_interface.f90
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
