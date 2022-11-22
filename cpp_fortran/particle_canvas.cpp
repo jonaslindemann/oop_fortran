@@ -7,6 +7,7 @@
 
 ParticleCanvas::ParticleCanvas(QWidget *parent)
     : QWidget{parent}
+    , m_maxSize(600.0)
 {
     m_timer = new QTimer(this);
     connect(m_timer, SIGNAL(timeout()), this, SLOT(on_timer_update()));
@@ -26,19 +27,35 @@ void ParticleCanvas::paintEvent(QPaintEvent *)
     painter.setBrush(Qt::white);
     painter.setPen(Qt::white);
 
+
+    double x, y, r;
+    double c;
+    double rmin, rmax, v0;
+    particle_system_params(&rmin, &rmax, &v0);
+
     for (auto i=1; i<=count; i++)
     {
-        double x, y, r;
         particle_system_particle(i, &x, &y, &r);
-        painter.drawEllipse(x*500, y*500, r*500, r*500);
+        c = 255.0 * (r - rmin) / (rmax - rmin);
+        painter.setBrush((QBrush(QColor(255, 255, int(c)))));
+        painter.setPen((QPen(QColor(255, 255, int(c)))));
+        painter.drawEllipse(QPointF(width()/2.0 - m_maxSize/2.0 + x*m_maxSize, height()/2.0 -m_maxSize/2.0 + y*m_maxSize), r*m_maxSize, r*m_maxSize);
     }
+}
 
-    std::cout << "redraw()\n";
+void ParticleCanvas::setMaxSize(double maxSize)
+{
+    m_maxSize = maxSize;
 }
 
 void ParticleCanvas::runSimulation()
 {
     m_timer->start();
+}
+
+void ParticleCanvas::stopSimulation()
+{
+    m_timer->stop();
 }
 
 void ParticleCanvas::on_timer_update()

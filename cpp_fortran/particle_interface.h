@@ -3,11 +3,12 @@
 
 extern "C" {
 
-void particle_system_init(int n);
+void particle_system_init(int n, double rmin, double rmax, double v0);
 void particle_system_destroy();
 void particle_system_run_iteration();
 void particle_system_particle(int idx, double* x, double* y, double* z);
 int particle_system_particle_count();
+void particle_system_params(double* min_radius, double* max_radius, double* v0);
 
 }
 

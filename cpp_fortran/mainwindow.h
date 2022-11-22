@@ -11,12 +11,31 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
+private:
+    int m_nParticles;
+    double m_minRadius;
+    double m_maxRadius;
+    double m_v0;
+    bool m_firstTime;
+    double m_maxSize;
+
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+    void updateParams();
+    void updateControls();
+
+    void createParticleSystem();
+
 private slots:
     void on_actionRun_triggered();
+
+    void on_actionStop_triggered();
+
+    void on_updateButton_clicked();
+
+    void on_maxSizeSlider_valueChanged(int value);
 
 private:
     Ui::MainWindow *ui;

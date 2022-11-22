@@ -12,9 +12,9 @@ private
     real(dp) :: m_rmin
     real(dp) :: m_rmax
     real(dp) :: m_dt
-    real(dp), allocatable :: m_pos(:,:)
-    real(dp), allocatable :: m_vel(:,:)
-    real(dp), allocatable :: m_r(:)
+    real(dp), pointer :: m_pos(:,:)
+    real(dp), pointer :: m_vel(:,:)
+    real(dp), pointer :: m_r(:)
 contains
     procedure :: init            => particle_system_init
     procedure :: destroy         => particle_system_destroy
@@ -25,8 +25,11 @@ contains
 
     procedure :: count           => particle_system_count
     procedure :: v0              => particle_system_v0
+    procedure :: set_v0          => particle_system_set_v0
     procedure :: rmin            => particle_system_rmin
+    procedure :: set_rmin        => particle_system_set_rmin
     procedure :: rmax            => particle_system_rmax
+    procedure :: set_rmax        => particle_system_set_rmax
     procedure :: dt              => particle_system_dt
     procedure :: positions       => particle_system_positions
     procedure :: velocities      => particle_system_velocities
@@ -51,10 +54,14 @@ end type
 
 contains
 
-subroutine particle_system_init(this, n)
+subroutine particle_system_init(this, n, rmin, rmax, v0)
 
     class(ParticleSystem) :: this
     integer(int32), intent(in) :: n
+    real(dp), intent(in), optional :: rmin
+    real(dp), intent(in), optional :: rmax
+    real(dp), intent(in), optional :: v0
+
     integer(ik) :: i
     real(dp) :: alfa
 
@@ -63,9 +70,23 @@ subroutine particle_system_init(this, n)
     allocate(this % m_vel(n,2))
     allocate(this % m_r(n))
 
-    this % m_v0 = 0.001_dp
-    this % m_rmin = 0.005_dp
-    this % m_rmax = 0.015_dp
+    if (present(v0)) then
+        this % m_v0 = v0
+    else
+        this % m_v0 = 0.001_dp
+    endif
+
+    if (present(rmin)) then
+        this % m_rmin = rmin
+    else
+        this % m_rmin = 0.005_dp
+    endif
+
+    if (present(rmax)) then
+        this % m_rmax = rmax
+    else
+        this % m_rmax = 0.015_dp
+    endif
 
     call init_random_seed()
 
@@ -140,6 +161,33 @@ real(dp) function particle_system_v0(this) result(v0)
 
 end function
 
+subroutine particle_system_set_rmin(this, rmin)
+
+    class(ParticleSystem) :: this
+    real(dp), intent(in) :: rmin
+
+    this % m_rmin = rmin
+
+end subroutine
+
+subroutine particle_system_set_rmax(this, rmax)
+
+    class(ParticleSystem) :: this
+    real(dp), intent(in) :: rmax
+
+    this % m_rmax = rmax
+
+end subroutine
+
+subroutine particle_system_set_v0(this, v0)
+
+    class(ParticleSystem) :: this
+    real(dp), intent(in) :: v0
+
+    this % m_v0 = v0
+
+end subroutine
+
 real(dp) function particle_system_rmin(this) result(rmin)
 
     class(ParticleSystem) :: this
@@ -167,27 +215,29 @@ end function
 function particle_system_positions(this) result(arr)
 
     class(ParticleSystem) :: this
-    real(dp), allocatable :: arr(:,:)
+    real(dp), pointer :: arr(:,:)
 
-    arr = this % m_pos
+    this % m_pos => arr
 
 end function
 
 function particle_system_velocities(this) result(arr)
 
     class(ParticleSystem) :: this
-    real(dp), allocatable :: arr(:,:)
+    real(dp), pointer :: arr(:,:)
 
-    arr = this % m_vel
+    this % m_vel => arr
+
+    !arr = this % m_vel
 
 end function
 
 function particle_system_radius(this) result(arr)
 
     class(ParticleSystem) :: this
-    real(dp), allocatable :: arr(:)
+    real(dp), pointer :: arr(:)
 
-    arr = this % m_r
+    this % m_r => arr
 
 end function
 
@@ -236,45 +286,37 @@ subroutine particle_simulator_update(this, dtin)
 
     class(ParticleSimulation) :: this
 
-    real(dp), allocatable :: pos(:,:)
-    real(dp), allocatable :: vel(:,:)
-    real(dp), allocatable :: r(:)
     integer(ik) :: i
     real(dp), intent(in), optional :: dtin
     real(dp) :: dt
 
-    pos = this % m_psys % positions()
-    vel = this % m_psys % velocities()
-    r = this % m_psys % radius()
+    associate (pos => this % m_psys % m_pos, vel => this % m_psys % m_vel, r => this % m_psys % m_r)
 
     if (present(dtin)) then
             dt = dtin
     else
-            dt = this % m_psys % rmin()/(3.0_dp*this % m_psys % v0())
+            !dt = this % m_psys % rmin()/(3.0_dp*this % m_psys % v0())
+            dt = this % m_psys % rmin()/(10.0_dp*this % m_psys % v0())
     end if
 
+    !this % m_psys % m_pos = this % m_psys % m_pos + this % m_psys % m_vel * dt
     pos = pos + vel * dt
-    print*, dt
+
+    end associate
 
 end subroutine particle_simulator_update
 
 subroutine particle_simulator_check_boundaries(this)
 
     class(ParticleSimulation) :: this
-    real(dp), allocatable :: pos(:,:)
-    real(dp), allocatable :: vel(:,:)
-    real(dp), allocatable :: r(:)
     integer(ik) :: i
 
-    pos = this % m_psys % positions()
-    vel = this % m_psys % velocities()
-    r = this % m_psys % radius()
 
     do i=1,this % m_psys % count()
-        if (pos(i,1) < r(i)) vel(i,1) = -vel(i,1)
-        if (pos(i,1)>1.0_dp-r(i)) vel(i,1) = -vel(i,1)
-        if (pos(i,2)<r(i)) vel(i,2) = -vel(i,2)
-        if (pos(i,2)>1.0_dp-r(i)) vel(i,2) = -vel(i,2)
+        if (this % m_psys % m_pos(i,1) < this % m_psys % m_r(i)) this % m_psys % m_vel(i,1) = -this % m_psys % m_vel(i,1)
+        if (this % m_psys % m_pos(i,1) > 1.0_dp-this % m_psys % m_r(i)) this % m_psys % m_vel(i,1) = -this % m_psys % m_vel(i,1)
+        if (this % m_psys % m_pos(i,2)< this % m_psys % m_r(i)) this % m_psys % m_vel(i,2) = -this % m_psys % m_vel(i,2)
+        if (this % m_psys % m_pos(i,2) > 1.0_dp-this % m_psys % m_r(i)) this % m_psys % m_vel(i,2) = -this % m_psys % m_vel(i,2)
     end do
 
 end subroutine
@@ -282,9 +324,6 @@ end subroutine
 subroutine particle_simulator_check_collisions(this)
 
     class(ParticleSimulation) :: this
-    real(dp), allocatable :: pos(:,:)
-    real(dp), allocatable :: vel(:,:)
-    real(dp), allocatable :: r(:)
 
     integer(ik) :: i, j
     real(dp) :: d, r1, r2
@@ -292,10 +331,6 @@ subroutine particle_simulator_check_collisions(this)
     real(dp) :: si(2), sj(2)
     real(dp) :: n(2), vdiff(2)
     real(dp) :: q
-
-    pos = this % m_psys % positions()
-    vel = this % m_psys % velocities()
-    r = this % m_psys % radius()
 
     !       | -------------|
     !               d
@@ -306,13 +341,15 @@ subroutine particle_simulator_check_collisions(this)
 
     do i=1,this % m_psys % count()
         do j=i+1,this % m_psys % count()
-            n = pos(j,:) - pos(i,:)
-            d = sqrt((pos(j,1)-pos(i,1))**2.0_dp+(pos(j,2)-pos(i,2))**2)
-            vdiff = vel(j,:) - vel(i,:)
-            if ((d<(r(i)+r(j))).and.(dot_product(n,vdiff)<0.0_dp)) then
+            n = this % m_psys % m_pos(j,:) - this % m_psys % m_pos(i,:)
+            d = sqrt( &
+                (this % m_psys % m_pos(j,1)-this % m_psys % m_pos(i,1))**2.0_dp+ &
+                (this % m_psys % m_pos(j,2)-this % m_psys % m_pos(i,2))**2)
+            vdiff = this % m_psys % m_vel(j,:) - this % m_psys % m_vel(i,:)
+            if ((d<(this % m_psys % m_r(i)+this % m_psys % m_r(j))).and.(dot_product(n,vdiff)<0.0_dp)) then
                 q = dot_product(vdiff,n)/dot_product(n,n)
-                vel(i,:) = vel(i,:) + n * q
-                vel(j,:) = vel(j,:) - n * q
+                this % m_psys % m_vel(i,:) = this % m_psys % m_vel(i,:) + n * q
+                this % m_psys % m_vel(j,:) = this % m_psys % m_vel(j,:) - n * q
             endif
         end do
     end do
