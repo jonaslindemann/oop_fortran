@@ -30,12 +30,9 @@ public:
 
 private slots:
     void on_actionRun_triggered();
-
     void on_actionStop_triggered();
-
-    void on_updateButton_clicked();
-
     void on_maxSizeSlider_valueChanged(int value);
+    void on_actionUpdate_triggered();
 
 private:
     Ui::MainWindow *ui;

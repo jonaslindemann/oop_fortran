@@ -8,8 +8,8 @@ use particle_utils
 
 implicit none
 
-class(ParticleSystem), pointer :: p_particle_system
-class(ParticleSimulation), pointer:: p_particle_simulation
+class(ParticleSystem), private, pointer :: p_particle_system
+class(ParticleSimulation), private, pointer:: p_particle_simulation
 
 contains
 

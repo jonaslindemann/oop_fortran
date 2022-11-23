@@ -217,7 +217,7 @@ function particle_system_positions(this) result(arr)
     class(ParticleSystem) :: this
     real(dp), pointer :: arr(:,:)
 
-    this % m_pos => arr
+    arr => this % m_pos
 
 end function
 
@@ -226,9 +226,7 @@ function particle_system_velocities(this) result(arr)
     class(ParticleSystem) :: this
     real(dp), pointer :: arr(:,:)
 
-    this % m_vel => arr
-
-    !arr = this % m_vel
+    arr => this % m_vel
 
 end function
 
@@ -237,7 +235,7 @@ function particle_system_radius(this) result(arr)
     class(ParticleSystem) :: this
     real(dp), pointer :: arr(:)
 
-    this % m_r => arr
+    arr => this % m_r
 
 end function
 
@@ -289,20 +287,21 @@ subroutine particle_simulator_update(this, dtin)
     integer(ik) :: i
     real(dp), intent(in), optional :: dtin
     real(dp) :: dt
+    real(dp), pointer :: pos(:,:)
+    real(dp), pointer :: vel(:,:)
+    real(dp), pointer :: r(:)
 
-    associate (pos => this % m_psys % m_pos, vel => this % m_psys % m_vel, r => this % m_psys % m_r)
+    pos => this % m_psys % positions()
+    vel => this % m_psys % velocities()
+    r => this % m_psys % radius()
 
     if (present(dtin)) then
             dt = dtin
     else
-            !dt = this % m_psys % rmin()/(3.0_dp*this % m_psys % v0())
             dt = this % m_psys % rmin()/(10.0_dp*this % m_psys % v0())
     end if
 
-    !this % m_psys % m_pos = this % m_psys % m_pos + this % m_psys % m_vel * dt
     pos = pos + vel * dt
-
-    end associate
 
 end subroutine particle_simulator_update
 
@@ -310,14 +309,24 @@ subroutine particle_simulator_check_boundaries(this)
 
     class(ParticleSimulation) :: this
     integer(ik) :: i
+    real(dp), pointer :: pos(:,:)
+    real(dp), pointer :: vel(:,:)
+    real(dp), pointer :: r(:)
 
+    pos => this % m_psys % positions()
+    vel => this % m_psys % velocities()
+    r => this % m_psys % radius()
+
+    !associate (pos => this % m_psys % m_pos, vel => this % m_psys % m_vel, r => this % m_psys % m_r)
 
     do i=1,this % m_psys % count()
-        if (this % m_psys % m_pos(i,1) < this % m_psys % m_r(i)) this % m_psys % m_vel(i,1) = -this % m_psys % m_vel(i,1)
-        if (this % m_psys % m_pos(i,1) > 1.0_dp-this % m_psys % m_r(i)) this % m_psys % m_vel(i,1) = -this % m_psys % m_vel(i,1)
-        if (this % m_psys % m_pos(i,2)< this % m_psys % m_r(i)) this % m_psys % m_vel(i,2) = -this % m_psys % m_vel(i,2)
-        if (this % m_psys % m_pos(i,2) > 1.0_dp-this % m_psys % m_r(i)) this % m_psys % m_vel(i,2) = -this % m_psys % m_vel(i,2)
+        if (pos(i,1) < r(i)) vel(i,1) = -vel(i,1)
+        if (pos(i,1) > 1.0_dp-r(i)) vel(i,1) = -vel(i,1)
+        if (pos(i,2) < r(i)) vel(i,2) = -vel(i,2)
+        if (pos(i,2) > 1.0_dp-r(i)) vel(i,2) = -vel(i,2)
     end do
+
+    !end associate
 
 end subroutine
 
@@ -331,6 +340,14 @@ subroutine particle_simulator_check_collisions(this)
     real(dp) :: si(2), sj(2)
     real(dp) :: n(2), vdiff(2)
     real(dp) :: q
+    real(dp), pointer :: pos(:,:)
+    real(dp), pointer :: vel(:,:)
+    real(dp), pointer :: r(:)
+
+    pos => this % m_psys % positions()
+    vel => this % m_psys % velocities()
+    r => this % m_psys % radius()
+
 
     !       | -------------|
     !               d
@@ -341,15 +358,15 @@ subroutine particle_simulator_check_collisions(this)
 
     do i=1,this % m_psys % count()
         do j=i+1,this % m_psys % count()
-            n = this % m_psys % m_pos(j,:) - this % m_psys % m_pos(i,:)
+            n = pos(j,:) - pos(i,:)
             d = sqrt( &
-                (this % m_psys % m_pos(j,1)-this % m_psys % m_pos(i,1))**2.0_dp+ &
-                (this % m_psys % m_pos(j,2)-this % m_psys % m_pos(i,2))**2)
-            vdiff = this % m_psys % m_vel(j,:) - this % m_psys % m_vel(i,:)
-            if ((d<(this % m_psys % m_r(i)+this % m_psys % m_r(j))).and.(dot_product(n,vdiff)<0.0_dp)) then
+                (pos(j,1)-pos(i,1))**2.0_dp+ &
+                (pos(j,2)-pos(i,2))**2)
+            vdiff = vel(j,:) - vel(i,:)
+            if ((d<(r(i)+r(j))).and.(dot_product(n,vdiff)<0.0_dp)) then
                 q = dot_product(vdiff,n)/dot_product(n,n)
-                this % m_psys % m_vel(i,:) = this % m_psys % m_vel(i,:) + n * q
-                this % m_psys % m_vel(j,:) = this % m_psys % m_vel(j,:) - n * q
+                vel(i,:) = vel(i,:) + n * q
+                vel(j,:) = vel(j,:) - n * q
             endif
         end do
     end do

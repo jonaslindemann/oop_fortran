@@ -30,9 +30,16 @@ MainWindow::~MainWindow()
 
 void MainWindow::updateParams()
 {
+    bool ok;
     m_nParticles = ui->particleSpin->value();
-    m_minRadius = ui->minRadiusText->text().toDouble();
-    m_maxRadius = ui->maxRadiusText->text().toDouble();
+
+    auto minRadius = ui->minRadiusText->text().toDouble(&ok);
+    if (ok) m_minRadius = minRadius;
+
+    auto maxRadius = ui->maxRadiusText->text().toDouble(&ok);
+    if (ok) m_maxRadius = maxRadius;
+
+    updateControls();
 }
 
 void MainWindow::updateControls()
@@ -68,16 +75,15 @@ void MainWindow::on_actionStop_triggered()
     ui->drawingArea->stopSimulation();
 }
 
-
-void MainWindow::on_updateButton_clicked()
-{
-    updateParams();
-    createParticleSystem();
-}
-
-
 void MainWindow::on_maxSizeSlider_valueChanged(int value)
 {
     ui->drawingArea->setMaxSize(double(value));
+}
+
+
+void MainWindow::on_actionUpdate_triggered()
+{
+    updateParams();
+    createParticleSystem();
 }
 
