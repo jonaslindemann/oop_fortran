@@ -16,20 +16,34 @@ MainWindow::MainWindow(QWidget *parent)
     , m_firstTime(true)
     , m_maxSize(600.0)
 {
+    // Setup user interface from UI-description
+
     ui->setupUi(this);
 
+    // Set default values for controls
+
     updateControls();
+
+    // Create particle system
+
     createParticleSystem();
 }
 
 MainWindow::~MainWindow()
 {
+    // Delete particle system
+
     particle_system_destroy();
+
+    // Delete user interface
+
     delete ui;
 }
 
 void MainWindow::updateParams()
 {
+    // Update parameters from controls
+
     bool ok;
     m_nParticles = ui->particleSpin->value();
 
@@ -39,11 +53,15 @@ void MainWindow::updateParams()
     auto maxRadius = ui->maxRadiusText->text().toDouble(&ok);
     if (ok) m_maxRadius = maxRadius;
 
+    // Set updated values in the controls
+
     updateControls();
 }
 
 void MainWindow::updateControls()
 {
+    // Update controls with values
+
     ui->particleSpin->setValue(m_nParticles);
     ui->minRadiusText->setText(QString::number(m_minRadius));
     ui->maxRadiusText->setText(QString::number(m_maxRadius));
@@ -52,14 +70,22 @@ void MainWindow::updateControls()
 
 void MainWindow::createParticleSystem()
 {
+    // Stop timer updates
+
     ui->drawingArea->stopSimulation();
+
+    // If not first time destroy current particle system
 
     if (!m_firstTime)
         particle_system_destroy();
 
+    // Create particle system
+
     particle_system_init(m_nParticles, m_minRadius, m_maxRadius, m_v0);
 
     m_firstTime = false;
+
+    // Start simulation
 
     ui->drawingArea->runSimulation();
 }
@@ -83,6 +109,8 @@ void MainWindow::on_maxSizeSlider_valueChanged(int value)
 
 void MainWindow::on_actionUpdate_triggered()
 {
+    // Handling a click on the Update button
+
     updateParams();
     createParticleSystem();
 }
