@@ -30,9 +30,9 @@ interface
 
     subroutine many_numbers(a, b, c, n) bind(C, name="many_numbers")
         use iso_c_binding
-        real(c_float) :: a(*)
-        real(c_float) :: b(*)
-        real(c_float) :: c(*)
+        real(c_float) :: a(n)
+        real(c_float) :: b(n)
+        real(c_float) :: c(n)
         integer(c_int), value :: n
     end subroutine
 

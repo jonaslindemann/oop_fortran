@@ -4,11 +4,11 @@ program myfortran
 
 implicit none
 
-type SimpleShapeArray
+type SimpleArrayElement
     type(Shape), pointer :: element
 end type
 
-type ShapeArray
+type ShapeArrayElement
     class(Shape), pointer :: element
 end type
 
@@ -27,8 +27,9 @@ class(Square), pointer :: p_square
 class(Circle), pointer :: p_circle
 class(Shape), pointer :: p_shape
 type(Shape), pointer :: p_simple_shape
-type(SimpleShapeArray), allocatable :: simple_shapes(:)
-type(ShapeArray), allocatable :: shapes(:)
+
+type(SimpleArrayElement), allocatable :: simple_shapes(:)
+type(ShapeArrayElement), allocatable :: shapes(:)
 type(Shape) :: static_shapes(20)
 type(Shape), allocatable :: dyn_shapes(:)
 
@@ -37,45 +38,36 @@ class(Point), pointer :: p_p0
 class(Point), pointer :: p_p1
 class(Point), pointer :: p_p2
 
-allocate(p_triangle)
-call p_triangle % init()
+! --- Simple examples
 
-p_p0 => p_triangle % get_point(1)
-p_p1 => p_triangle % get_point(1)
-p_p2 => p_triangle % get_point(1)
+s = Shape()
+!call s % init()
+call s % print()
+call s % set_pos(2.0, 2.0)
+call s % print()
 
-call p_p0 % set_pos(0.0, 0.0)
-call p_p1 % set_pos(1.0, 0.0)
-call p_p2 % set_pos(1.0, 1.0)
+call make_objects()
 
-call p_triangle % print()
+allocate(s2)
 
-stop
+call s2 % init()
+call s2 % print()
 
-allocate(p_square)
-allocate(p_circle)
+deallocate(s2)
 
-call p_square % init()
-call p_circle % init()
+call sq % init()
+call sq % print()
+call c % init()
+call c % print()
 
-print*, '-----'
-
-p_shape => p_square
-
-call p_shape % print()
-
-p_shape => p_circle
-
-call p_shape % print()
-
-print*, '-----'
-
-stop
+! --- Static array of shapes
 
 do i=1,20
     call static_shapes(i) % init()
     call static_shapes(i) % print()
 end do
+
+! --- Dynamic array of shapes
 
 allocate(dyn_shapes(20))
 
@@ -85,6 +77,8 @@ do i=1,20
 end do
 
 deallocate(dyn_shapes)
+
+! --- Dynamic array of dynamic objects
 
 allocate(simple_shapes(20))
 
@@ -106,23 +100,25 @@ end do
 
 deallocate(simple_shapes)
 
-s = Shape()
-!call s % init()
-call s % print()
-call s % set_pos(2.0, 2.0)
-call s % print()
+! --- Polymorphism
 
-allocate(s2)
+allocate(p_square)
+allocate(p_circle)
 
-call s2 % init()
-call s2 % print()
+call p_square % init()
+call p_circle % init()
 
-deallocate(s2)
+print*, '-----'
 
-call sq % init()
-call sq % print()
-call c % init()
-call c % print()
+p_shape => p_square
+
+call p_shape % print()
+
+p_shape => p_circle
+
+call p_shape % print()
+
+print*, '-----'
 
 allocate(shapes(20))
 
@@ -136,12 +132,35 @@ do i = 1, 20
     call p_shape % print()
 end do
 
+deallocate(shapes)
+
+! --- Composition: Triangle
+
+allocate(p_triangle)
+call p_triangle % init()
+
+p_p0 => p_triangle % get_point(1)
+p_p1 => p_triangle % get_point(1)
+p_p2 => p_triangle % get_point(1)
+
+call p_p0 % set_pos(0.0, 0.0)
+call p_p1 % set_pos(1.0, 0.0)
+call p_p2 % set_pos(1.0, 1.0)
+
+call p_triangle % print()
+
+deallocate(p_triangle)
+
 contains
 
-    ! --- Add your subroutines and functions here
-    ! 
-    ! subroutine mysub
-    ! 
-    ! end subroutine mysub
+subroutine make_objects()
+
+    type(Shape) :: s4
+
+    call s4 % init()
+    call s4 % set_pos(5.0, 6.0)
+    call s4 % print()
+
+end subroutine
 
 end program myfortran
