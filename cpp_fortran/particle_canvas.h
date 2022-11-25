@@ -30,8 +30,6 @@ signals:
 public slots:
 
     void on_timer_update();
-
-
 };
 
 #endif // PARTICLECANVAS_H

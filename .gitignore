@@ -1,3 +1,5 @@
 build-*
 *.user
 *.autosave
+*.user
+*.user
