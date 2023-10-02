@@ -59,7 +59,7 @@ private
     type(PointElement) :: m_points(3)
 contains
     procedure :: init => triangle_init
-    procedure :: get_point => triangle_get_point
+    procedure :: get_point => triangle_get_pointo
     procedure :: print => triangle_print
 end type
 

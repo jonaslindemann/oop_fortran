@@ -4,43 +4,43 @@ program myfortran
 
 implicit none
 
-type SimpleArrayElement
-    type(Shape), pointer :: element
+type simple_array_element
+    type(shape_class), pointer :: element
 end type
 
-type ShapeArrayElement
-    class(Shape), pointer :: element
+type shape_array_element
+    class(shape_class), pointer :: element
 end type
 
 integer :: i
 
-type(Shape) :: s
-type(Shape), allocatable :: s2
-type(Square) :: sq
-type(Circle) :: c
+type(shape_class) :: s
+type(shape_class), allocatable :: s2
+type(square_class) :: sq
+type(circle_class) :: c
 
 ! Instantiating a Particle object
 
-type(Particle) :: p
+type(particle_class) :: p
 
-class(Square), pointer :: p_square
-class(Circle), pointer :: p_circle
-class(Shape), pointer :: p_shape
-type(Shape), pointer :: p_simple_shape
+class(square_class), pointer :: p_square
+class(circle_class), pointer :: p_circle
+class(shape_class), pointer :: p_shape
+type(shape_class), pointer :: p_simple_shape
 
-type(SimpleArrayElement), allocatable :: simple_shapes(:)
-type(ShapeArrayElement), allocatable :: shapes(:)
-type(Shape) :: static_shapes(20)
-type(Shape), allocatable :: dyn_shapes(:)
+type(simple_array_element), allocatable :: simple_shapes(:)
+type(shape_array_element), allocatable :: shapes(:)
+type(shape_class) :: static_shapes(20)
+type(shape_class), allocatable :: dyn_shapes(:)
 
-class(Triangle), pointer :: p_triangle
-class(Point), pointer :: p_p0
-class(Point), pointer :: p_p1
-class(Point), pointer :: p_p2
+class(triangle_class), pointer :: p_triangle
+class(point_class), pointer :: p_p0
+class(point_class), pointer :: p_p1
+class(point_class), pointer :: p_p2
 
 ! --- Simple examples
 
-s = Shape()
+s = shape_class()
 !call s % init()
 call s % print()
 call s % set_pos(2.0, 2.0)
@@ -134,7 +134,7 @@ end do
 
 deallocate(shapes)
 
-! --- Composition: Triangle
+! --- Composition: triangle_class
 
 allocate(p_triangle)
 call p_triangle % init()
@@ -155,7 +155,7 @@ contains
 
 subroutine make_objects()
 
-    type(Shape) :: s4
+    type(shape_class) :: s4
 
     call s4 % init()
     call s4 % set_pos(5.0, 6.0)
